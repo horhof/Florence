@@ -1,0 +1,142 @@
+<style>
+.g { color: green }
+.b { color: #1480fc }
+.r { color: red }
+.y { color: #e0bf18 }
+.o { color: #e06f18 }
+.p { color: purple }
+</style>
+<pre>
+                                Bilence
+
+        Steps flow in linear order.
+
+  - Make HTTP request.
+  - Log response to file.
+
+<img src=fig/001.png>
+
+        If instead of a step you have a decision (yellow diamonds), one path
+    flows to the green step, another to the red step. They both converge at the
+    black step.
+
+  - Make HTTP request.
+  - <span class=y>Network down?</span> <span class=g>Throw exception</span>.
+  - Otherwise, <span class=r>blink light</span>.
+  - Log response to file.
+
+<img src=fig/002.png>
+
+        Decisions can be chained together. This stacks them horizontally. After
+    turning the button green, the flow converges again at the black step, log
+    response to file. If the code is not 200, the log is also written.
+
+  - Make HTTP request.
+  - <span class=y>Server accepts?</span> <span class=o>Code 200?</span> <span class=g>Turn button green</span>.
+  - Otherwise, <span class=r>blink light</span>.
+  - Log response to file.
+
+      [
+        { "type": "step", "name": "Make HTTP request." },
+        { "type": "decision", "name": "Server accepts?",
+          "branches": [
+            { "type": "decision", "name": "Network down?",
+              "branches": [
+                { "type": "step", "name": "Throw exception." }
+              ]
+            },
+            { "type": "decision", "name": "Blink light." },
+          ]
+        },
+        { "type": "step", "name": "Log response to file." }
+      ]
+
+
+<img src=fig/004.png>
+
+        This can be written without stacking multiple decisions horizontally.
+
+  - Make HTTP request.
+  - <span class=y>Server accepts?</span>
+    - <span class=o>Code 200?</span> <span class=g>Turn button green</span>.
+  - Otherwise, <span class=r>blink light</span>.
+  - Log response to file.
+
+<img src=fig/005.png>
+
+        This verticaly separation can also be done with single branches.
+
+  - Make HTTP request.
+  - Server accepts?
+    - Code 200?
+      - Turn button green.
+  - Log response to file.
+
+<img src=fig/006.png>
+
+        The original single decision can also be enlarged verticlaly this way.
+    But there's no point to this unless the branching part of the decision
+    contains further decisions.
+
+  - Make HTTP request.
+  - Network down?
+    - Throw exception.
+  - Log response to file.
+
+<img src=fig/003.png>
+
+
+        This time with an else:
+
+  - Make HTTP request.
+  - Server accepts?
+    - Code 200?
+      - Turn button green.
+    - Send alert with unexpected status code.
+  - Turn button red.
+  - Log response to file.
+
+<img src=fig/007.png>
+
+        Nested decisions with the decision blocks vertically stacked. Does a
+    multi-clause if then else.
+
+  - Make HTTP request.
+  - <span class=y>Server accepts?</span>
+    - <span class=o>Code 200?</span> <span class=g>Turn button green</span>.
+    - <span class=o>Code 4xx?</span> <span class=b>Turn button orange and blink slowly</span>.
+    - <span class=o>Code non-5xx?</span> <span class=p>Blink once</span>.
+  - Otherwise, <span class=r>blink red light continuously</span>.
+  - Log response to file.
+
+<img src=fig/008.png>
+
+<hr>
+
+        Alternate presentation that makes the two branches appear equal:
+
+  - Make HTTP request.
+  - Server accepts?
+    - Code 200?
+      - Turn button green.
+    - Code 304?
+      - Turn button green and blink slowly.
+      - Else send alert with unexpected status code.
+    - Otherwise, turn button red.
+  - Log response to file.
+
+<hr>
+
+        Testing:
+
+  - Make HTTP request.
+  - Server accepts?
+    - Yes. Code 200?
+      - Yes. Turn button green.
+    - Yes. Code 304?
+      - Yes. Turn button green and blink slowly.
+    - No. send alert with unexpected status code.
+  - No, turn button red.
+  - Log response to file.
+
+<pre>
